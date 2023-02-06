@@ -1,0 +1,74 @@
+
+
+```{r}
+library("data.table")
+df = fread('Amazon.csv')
+df
+```
+```{r}
+setnames(df, old=names(df), new=tolower(names(df)))
+colnames(df) <- tolower(colnames(df))
+
+colnames(df) <- gsub(" ", "_", colnames(df))
+
+df
+```
+
+```{r}
+predictors <- setdiff(names(df), "is_selected")
+data <- df[, c(predictors), with = FALSE]
+fit <- glm(df$is_selected ~ ., data=data, family = binomial())
+
+
+summary(fit)
+```
+
+```{r}
+# Load the library for GLM
+library(stats)
+install.packages("aod")
+library(aod)
+
+# Generate sample data
+set.seed(123)
+names(df)[2]
+
+for (i in 2:15){
+  column_name <- names(df)[i]
+  p_value <- wald.test(Sigma = vcov(fit), b = coef(fit), Terms =i)$result$chi2[3]
+  p_value <- round(p_value, digits=2)
+  if (p_value <=0.05)
+  {
+    col_significance <- "significant"
+  }
+  else
+  {
+    col_significance <- "insignificant"
+  }
+  print(paste(column_name,  "is", col_significance, "with p_value " , p_value))
+}
+
+sprintf("%d is %s and %s", 5, "a", "b")
+typeof(wald.test(Sigma = vcov(fit), b = coef(fit), Terms =5)$result$chi2[3]
+)
+attributes(wald.test(Sigma = vcov(fit), b = coef(fit), Terms =2))
+
+attributes(wald.test(Sigma = vcov(fit), b = coef(fit), Terms =2)$result$chi2$P)
+
+wald.test(Sigma = vcov(fit), b = coef(fit), Terms =2)$result$chi2[3]
+```
+
+
+```{r}
+library(clubSandwich)
+
+args(Wald_test)
+
+V_sep <- vcovCR(fit, cluster = df$is_selected, type = "CR2")
+coef_test(fit, vcov = V_sep)
+
+
+
+```
+
+
